@@ -1,12 +1,5 @@
 package vulture
 
-type ScanType int
-
-const (
-	ScanTypeMin ScanType = iota
-	ScanTypeMax
-)
-
 type numbers interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64 |
 		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 |
@@ -14,7 +7,7 @@ type numbers interface {
 }
 
 type hofable interface {
-	numbers | string
+	numbers
 }
 
 type List[T hofable] []T
@@ -29,7 +22,7 @@ func IntoSlice[T hofable](val []T) List[T] {
 	return s
 }
 
-func getMin[T hofable](a, b T) T {
+func Min[T hofable](a, b T) T {
 	if a < b {
 		return a
 	}
@@ -37,7 +30,7 @@ func getMin[T hofable](a, b T) T {
 	return b
 }
 
-func getMax[T hofable](a, b T) T {
+func Max[T hofable](a, b T) T {
 	if a < b {
 		return b
 	}
@@ -45,22 +38,48 @@ func getMax[T hofable](a, b T) T {
 	return a
 }
 
-func (s List[T]) ScanLeft(types ScanType) List[T] {
+func (s List[T]) ScanRight(init T, fn func(accumulator T, val T) T) List[T] {
 	var ss List[T]
-	prev := s[0]
+	var acc T = init
 
-	ops := getMin[T]
-	if types == ScanTypeMax {
-		ops = getMax[T]
-	}
-
-	for _, v := range s {
-		toAppend := ops(prev, v)
-		ss = append(ss, toAppend)
-		prev = toAppend
+	for i := range s {
+		acc = fn(acc, s[len(s)-1-i])
+		ss = append(List[T]{acc}, ss...)
 	}
 
 	return ss
+}
+
+func (s List[T]) ScanLeft(init T, fn func(accumulator, val T) T) List[T] {
+	var ss List[T]
+	var acc T = init
+
+	for _, v := range s {
+		acc = fn(acc, v)
+		ss = append(ss, acc)
+	}
+
+	return ss
+}
+
+func (s List[T]) FoldRight(init T, fn func(accumulator, val T) T) T {
+	var result T = init
+
+	for i := range s {
+		result = fn(s[len(s)-1-i], result)
+	}
+
+	return result
+}
+
+func (s List[T]) FoldLeft(init T, fn func(accumulator, val T) T) T {
+	var result T = init
+
+	for _, v := range s {
+		result = fn(result, v)
+	}
+
+	return result
 }
 
 func (s List[T]) Filter(fn func(T) bool) List[T] {
