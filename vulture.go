@@ -35,6 +35,6 @@ func (s List[T]) Iter() iterator[T] {
 	return iterator[T]{s}
 }
 
-// func (s *List[T]) IterRef() iterator[T] {
-// 	return iterator[T]{s}
-// }
+func (s *List[T]) IterRef() iteratorRef[T] {
+	return iteratorRef[T]{s}
+}

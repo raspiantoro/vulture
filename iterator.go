@@ -4,6 +4,13 @@ type iterator[T any] struct {
 	val List[T]
 }
 
+func (i iterator[T]) cloneVal() List[T] {
+	list := make(List[T], len(i.val))
+	copy(list, i.val)
+
+	return list
+}
+
 func (i iterator[T]) OldScanRight(init T, fn func(accumulator T, val T) T) iterator[T] {
 	var list List[T]
 	var acc T = init
@@ -17,11 +24,13 @@ func (i iterator[T]) OldScanRight(init T, fn func(accumulator T, val T) T) itera
 }
 
 func (i iterator[T]) ScanRight(init T, fn func(accumulator T, val T) T) iterator[T] {
-	scanRight(&i.val, init, fn)
-	return iterator[T]{i.val}
+	list := i.cloneVal()
+	scanRight(&list, init, fn)
+
+	return iterator[T]{list}
 }
 
-func (i iterator[T]) ScanLeft(init T, fn func(accumulator, val T) T) iterator[T] {
+func (i iterator[T]) OldScanLeft(init T, fn func(accumulator, val T) T) iterator[T] {
 	var list List[T]
 	var acc T = init
 
@@ -29,6 +38,13 @@ func (i iterator[T]) ScanLeft(init T, fn func(accumulator, val T) T) iterator[T]
 		acc = fn(acc, v)
 		list = append(list, acc)
 	}
+
+	return iterator[T]{list}
+}
+
+func (i iterator[T]) ScanLeft(init T, fn func(accumulator, val T) T) iterator[T] {
+	list := i.cloneVal()
+	scanLeft(&list, init, fn)
 
 	return iterator[T]{list}
 }
@@ -73,9 +89,19 @@ type iteratorRef[T any] struct {
 	val *List[T]
 }
 
-// func (i iteratorRef[T]) ScanRight(init T, fn func(accumulator T, val T) T) iterator[T] {
+func (i iteratorRef[T]) Collect() *List[T] {
+	return i.val
+}
 
-// }
+func (i iteratorRef[T]) ScanRight(init T, fn func(accumulator T, val T) T) iteratorRef[T] {
+	scanRight(i.val, init, fn)
+	return iteratorRef[T]{i.val}
+}
+
+func (i iteratorRef[T]) ScanLeft(init T, fn func(accumulator T, val T) T) iteratorRef[T] {
+	scanLeft(i.val, init, fn)
+	return iteratorRef[T]{i.val}
+}
 
 func scanRight[T any](list *List[T], init T, fn func(accumulator, val T) T) {
 	var acc T = init
@@ -90,4 +116,14 @@ func scanRight[T any](list *List[T], init T, fn func(accumulator, val T) T) {
 	}
 
 	reverse(list)
+}
+
+func scanLeft[T any](list *List[T], init T, fn func(accumulator, val T) T) {
+	var acc T = init
+	ll := *list
+
+	for i, n := range ll {
+		acc = fn(acc, n)
+		ll[i] = acc
+	}
 }
