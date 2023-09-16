@@ -17,9 +17,6 @@ func main() {
 	// c := a.Iter().Filter(func(i int) bool { return i < 7 }).Collect()
 	// fmt.Println("c: ", c)
 
-	d := a.Iter().OldScanLeft(6, func(acc, v int) int { return int(math.Max(float64(acc), float64(v))) }).Collect()
-	fmt.Println("d: ", d)
-
 	e := a.Iter().ScanLeft(6, func(acc, v int) int { return int(math.Max(float64(acc), float64(v))) }).Collect()
 	fmt.Println("e: ", e)
 
@@ -31,9 +28,6 @@ func main() {
 
 	fmt.Println("a: ", a)
 	fmt.Println("a address: ", unsafe.Pointer(&a))
-
-	g := a.Iter().OldScanRight(2, func(acc, v int) int { return int(math.Min(float64(acc), float64(v))) }).Collect()
-	fmt.Println("g: ", g)
 
 	h := a.Iter().ScanRight(2, func(acc, v int) int { return int(math.Min(float64(acc), float64(v))) }).Collect()
 	fmt.Println("h: ", h)
